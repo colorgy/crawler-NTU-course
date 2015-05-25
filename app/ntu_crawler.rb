@@ -1,8 +1,8 @@
-require 'XDDCrawler'
-require 'pry'
-
 require 'thread'
 require 'thwait'
+
+# Example Usage
+# NtuCrawler.new(encoding: 'big5').course
 
 class NtuCrawler
   include XDDCrawler::ASPEssential
@@ -115,14 +115,13 @@ class NtuCrawler
             :location_8 => course_locations[7],
             :location_9 => course_locations[8],
           }
-
         end
       end
     end
 
     ThreadsWait.all_waits(*@threads)
-    binding.pry
-    puts "hello"
+    $redis.set("course", JSON.pretty_generate(@courses))
+    puts @courses[1..3]
   end
 end
 
@@ -131,5 +130,3 @@ class String
     self.strip.gsub(/^[ |\s]*|[ |\s]*$/,'')
   end
 end
-
-NtuCrawler.new(encoding: 'big5').course
