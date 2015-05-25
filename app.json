@@ -1,0 +1,21 @@
+{
+  "name": "NTU Crawler",
+  "description": "a ruby crawler for ntu course data",
+  "keywords": [
+    "crawler",
+    "ruby",
+    "rest-client"
+  ],
+  "website": "https://ntu-crawler.herokuapp.com/",
+  "repository": "https://github.com/colorgy/crawler-NTU-course",
+  "env": {
+    "API_KEY": {
+      "description": "A secret key for triggering crawl service",
+      "generator": "secret"
+    },
+    "REDIS_PROVIDER": "REDISTOGO_URL"
+  },
+  "addons": [
+    "redistogo:nano"
+  ]
+}
