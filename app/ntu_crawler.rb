@@ -46,6 +46,7 @@ class NtuCrawler
   end
 
   def course detail=false
+    $redis.del "course"
     visit @search_url
 
     post @search_url, {
@@ -57,8 +58,12 @@ class NtuCrawler
     pages_param.each do |query|
       sleep(1) until (Thread.list.count < (ENV['MAX_THREADS'] || 20))
 
-      # @threads << Thread.new do
-        r = RestClient.get "#{@search_url}#{query}"
+      @threads << Thread.new do
+        begin
+          r = RestClient.get("#{@search_url}#{query}")
+        rescue Exception => e
+          next
+        end
 
         doc = Nokogiri::HTML(r.force_encoding(@encoding))
         doc.xpath('/html/body/table[4]//tr[position()>1]').each do |row|
@@ -78,7 +83,7 @@ class NtuCrawler
             end
           end
 
-          @courses << {
+          course = {
             serial: datas[0] && datas[0].text.power_strip,
             department: datas[1] && datas[1].text.power_strip,
             code: datas[2] && datas[2].text.power_strip,
@@ -87,42 +92,45 @@ class NtuCrawler
             id: datas[6] && datas[6].text.power_strip,
             required: datas[8] && datas[8].text.include?('必'),
             lecturer: datas[9] && datas[9].text.power_strip,
-            :day_1 => course_days[0],
-            :day_2 => course_days[1],
-            :day_3 => course_days[2],
-            :day_4 => course_days[3],
-            :day_5 => course_days[4],
-            :day_6 => course_days[5],
-            :day_7 => course_days[6],
-            :day_8 => course_days[7],
-            :day_9 => course_days[8],
-            :period_1 => course_periods[0],
-            :period_2 => course_periods[1],
-            :period_3 => course_periods[2],
-            :period_4 => course_periods[3],
-            :period_5 => course_periods[4],
-            :period_6 => course_periods[5],
-            :period_7 => course_periods[6],
-            :period_8 => course_periods[7],
-            :period_9 => course_periods[8],
-            :location_1 => course_locations[0],
-            :location_2 => course_locations[1],
-            :location_3 => course_locations[2],
-            :location_4 => course_locations[3],
-            :location_5 => course_locations[4],
-            :location_6 => course_locations[5],
-            :location_7 => course_locations[6],
-            :location_8 => course_locations[7],
-            :location_9 => course_locations[8],
+            day_1: course_days[0],
+            day_2: course_days[1],
+            day_3: course_days[2],
+            day_4: course_days[3],
+            day_5: course_days[4],
+            day_6: course_days[5],
+            day_7: course_days[6],
+            day_8: course_days[7],
+            day_9: course_days[8],
+            period_1: course_periods[0],
+            period_2: course_periods[1],
+            period_3: course_periods[2],
+            period_4: course_periods[3],
+            period_5: course_periods[4],
+            period_6: course_periods[5],
+            period_7: course_periods[6],
+            period_8: course_periods[7],
+            period_9: course_periods[8],
+            location_1: course_locations[0],
+            location_2: course_locations[1],
+            location_3: course_locations[2],
+            location_4: course_locations[3],
+            location_5: course_locations[4],
+            location_6: course_locations[5],
+            location_7: course_locations[6],
+            location_8: course_locations[7],
+            location_9: course_locations[8],
           }
+          # @courses << course
+          $redis.rpush("course", course.to_json);
         end
-      # end
-    end
+      end # Thread.new do
+    end # pages_params.each
 
-    # ThreadsWait.all_waits(*@threads)
-    $redis.set("course", JSON.pretty_generate(@courses))
-    puts @courses[1..3]
-  end
+    ThreadsWait.all_waits(*@threads)
+    # $redis.set("course",@courses.to_json)
+    # $redis.rpush("course", course);
+    puts "done!"
+  end # def course
 end
 
 class String

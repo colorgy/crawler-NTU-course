@@ -6,6 +6,7 @@ gem 'nokogiri'
 gem 'hashie'
 
 gem 'pry'
+gem 'pry-remote'
 
 gem 'rest-client'
 

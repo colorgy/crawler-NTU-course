@@ -49,7 +49,8 @@ end
 get '/courses.json' do
   if $redis.exists("course")
     content_type :json
-    return $redis.get("course")
+    course_jsons = $redis.lrange "course", 0, -1
+    return JSON.pretty_generate course_jsons.map {|d| JSON.parse(d)}
   else
     return {status: 'has no crawl data yet'}.to_json
   end
