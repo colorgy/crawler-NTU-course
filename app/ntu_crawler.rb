@@ -57,7 +57,7 @@ class NtuCrawler
     pages_param.each do |query|
       sleep(1) until (Thread.list.count < (ENV['MAX_THREADS'] || 20))
 
-      @threads << Thread.new do
+      # @threads << Thread.new do
         r = RestClient.get "#{@search_url}#{query}"
 
         doc = Nokogiri::HTML(r.force_encoding(@encoding))
@@ -116,10 +116,10 @@ class NtuCrawler
             :location_9 => course_locations[8],
           }
         end
-      end
+      # end
     end
 
-    ThreadsWait.all_waits(*@threads)
+    # ThreadsWait.all_waits(*@threads)
     $redis.set("course", JSON.pretty_generate(@courses))
     puts @courses[1..3]
   end
