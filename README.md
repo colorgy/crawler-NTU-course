@@ -7,8 +7,13 @@
 
 [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/colorgy/crawler-NTU-course/tree/master)
 
-Deploy 後
-把 dyno type 設成 free 然後跑
+Deploy 後把 clone 下來的 app 連結到 heroku
+
+```
+git remote add heroku git@heroku.com:your_project_name.git
+```
+
+去 dashboard 把 dyno type 設成 free 然後跑
 ```
     heroku ps:scale worker=1
 ```
