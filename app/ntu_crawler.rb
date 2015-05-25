@@ -47,8 +47,10 @@ class NtuCrawler
 
   def course detail=false
     $redis.del "course"
+    puts "get search_url"
     visit @search_url
 
+    puts "post search_url"
     post @search_url, {
       cstype: 1,
       select_sem: "#{@year}-#{@term}",
@@ -56,15 +58,19 @@ class NtuCrawler
 
     pages_param = @doc.xpath('//select[@name="jump"]//@value').map(&:value).uniq
     pages_param.each do |query|
-      sleep(1) until (Thread.list.count < (ENV['MAX_THREADS'] || 20))
+      until (Thread.list.count < 10) do
+        # puts "#{ENV['MAX_THREADS']}, #{ENV['MAX_THREADS'].to_i}"
+        puts "thread list count = #{Thread.list.count}"
+        # puts Thread.list.map(&:status).to_json
+        sleep(1)
+        puts "@threads.count = #{@threads.count}"
+      end
 
       @threads << Thread.new do
-        begin
-          r = RestClient.get("#{@search_url}#{query}")
-        rescue Exception => e
-          next
-        end
+        puts "get page url"
+        r = RestClient.get("#{@search_url}#{query}")
 
+        puts "parse page"
         doc = Nokogiri::HTML(r.force_encoding(@encoding))
         doc.xpath('/html/body/table[4]//tr[position()>1]').each do |row|
           datas = row.css('td')
@@ -121,6 +127,7 @@ class NtuCrawler
             location_9: course_locations[8],
           }
           # @courses << course
+          puts "save to redis"
           $redis.rpush("course", course.to_json);
         end
       end # Thread.new do
@@ -128,7 +135,6 @@ class NtuCrawler
 
     ThreadsWait.all_waits(*@threads)
     # $redis.set("course",@courses.to_json)
-    # $redis.rpush("course", course);
     puts "done!"
   end # def course
 end

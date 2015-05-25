@@ -13,9 +13,9 @@
       "description": "A secret key for triggering crawl service",
       "generator": "secret"
     },
-    "REDIS_PROVIDER": "REDISTOGO_URL"
+    "REDIS_PROVIDER": "REDISCLOUD_URL"
   },
   "addons": [
-    "redistogo:nano"
+    "rediscloud"
   ]
 }

@@ -2,7 +2,7 @@ require './config'
 require 'sidekiq/api'
 require 'json'
 
-$redis = Redis.new(url: ENV['REDISTOGO_URL'])
+$redis = Redis.new(url: ENV['REDISCLOUD_URL'])
 
 processed ||= Sidekiq::Stats.new.processed
 
