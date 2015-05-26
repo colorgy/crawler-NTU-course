@@ -1,4 +1,5 @@
 require 'thread'
+require 'thread/pool'
 require 'thwait'
 
 # Example Usage
@@ -56,17 +57,11 @@ class NtuCrawler
       select_sem: "#{@year}-#{@term}",
     }
 
+    pool = Thread.pool(ENV['MAX_THREADS'] && ENV['MAX_THREADS'].to_i || 20)
+
     pages_param = @doc.xpath('//select[@name="jump"]//@value').map(&:value).uniq
     pages_param.each do |query|
-      until (Thread.list.count < 10) do
-        # puts "#{ENV['MAX_THREADS']}, #{ENV['MAX_THREADS'].to_i}"
-        puts "thread list count = #{Thread.list.count}"
-        # puts Thread.list.map(&:status).to_json
-        sleep(1)
-        puts "@threads.count = #{@threads.count}"
-      end
-
-      @threads << Thread.new do
+      pool.process(query) do
         puts "get page url"
         r = RestClient.get("#{@search_url}#{query}")
 
@@ -133,8 +128,7 @@ class NtuCrawler
       end # Thread.new do
     end # pages_params.each
 
-    ThreadsWait.all_waits(*@threads)
-    # $redis.set("course",@courses.to_json)
+    pool.shutdown
     puts "done!"
   end # def course
 end

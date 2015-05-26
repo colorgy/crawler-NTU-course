@@ -19,6 +19,7 @@ gem 'dotenv'
 gem 'sidekiq'
 gem 'sidekiq-status'
 gem 'redis'
+gem 'thread'
 gem 'slim'
 
 gem 'XDDCrawler'
