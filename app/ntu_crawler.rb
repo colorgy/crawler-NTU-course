@@ -87,7 +87,8 @@ class NtuCrawler
           course = {
             serial: datas[0] && datas[0].text.power_strip,
             department: datas[1] && datas[1].text.power_strip,
-            code: datas[2] && datas[2].text.power_strip,
+            number: datas[2] && datas[2].text.power_strip,
+            code: SecureRandom.urlsafe_base64,
             name: datas[4] && datas[4].text.power_strip,
             credits: datas[5] && datas[5].text.to_i,
             id: datas[6] && datas[6].text.power_strip,
