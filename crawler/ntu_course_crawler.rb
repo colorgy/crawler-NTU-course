@@ -102,9 +102,10 @@ class NtuCourseCrawler
           department = datas[1] && datas[1].text.power_strip
           url = datas[4] && !datas[4].css('a').empty? && URI.encode("#{@base_url}#{datas[4].css('a')[0][:href]}")
           id = datas[6] && datas[6].text.power_strip.gsub(/\s/, '')
+          class_code= datas[3] && datas[3].text.power_strip
           department_code = Hash[URI.decode_www_form(url)]["dpt_code"]
 
-          code = [@year, @term, id, department_code].join('-')
+          code = [@year, @term, id, department_code, class_code].join('-')
 
           course = {
             year: @year,
@@ -114,6 +115,7 @@ class NtuCourseCrawler
             department_code: department_code,
             number: datas[2] && datas[2].text.power_strip,
             code: code,
+            class_code: class_code,
             name: name,
             credits: datas[5] && datas[5].text.to_i,
             id: id,
