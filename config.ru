@@ -1,4 +1,8 @@
 require './app'
 require 'sidekiq/web'
 
-run Rack::URLMap.new('/' => Sinatra::Application, '/sidekiq' => Sidekiq::Web)
+Sidekiq::Web.use(Rack::Auth::Basic) do |user, password|
+  [user, password] == ["admin", ENV['API_KEY']]
+end
+
+run Rack::URLMap.new('/' => WebTaskRunner, '/sidekiq' => Sidekiq::Web)

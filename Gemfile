@@ -5,21 +5,17 @@ ruby '2.1.5'
 gem 'nokogiri'
 gem 'hashie'
 
+gem 'crawler_rocks'
+gem 'web_task_runner'
+gem 'rest-client'
+
 gem 'pry'
 gem 'pry-remote'
 
-gem 'rest-client'
-
-gem 'sinatra'
 gem 'foreman'
-gem 'thin'
 
 gem 'dotenv'
 
-gem 'sidekiq'
-gem 'sidekiq-status'
 gem 'redis'
-gem 'thread'
-gem 'slim'
 
-gem 'XDDCrawler'
+gem 'thread'

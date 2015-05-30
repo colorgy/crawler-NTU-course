@@ -5,8 +5,8 @@ require 'thwait'
 # Example Usage
 # NtuCrawler.new(encoding: 'big5').course
 
-class NtuCrawler
-  include XDDCrawler::ASPEssential
+class NtuCourseCrawler
+  include CrawlerRocks::DSL
 
   DAYS = {
     "一" => 1,
@@ -35,20 +35,26 @@ class NtuCrawler
     "D" => 14
   }
 
-  def initialize(*args)
-    super(*args)
+  def initialize year: current_year, term: current_term, update_progress: nil, after_each: nil
 
-    @courses = []
     @search_url = "https://nol.ntu.edu.tw/nol/coursesearch/search_result.php"
 
-    @threads = []
-    @year = 103
-    @term = 1
+
+    @year = year
+    @term = term
+    @update_progress_proc = update_progress
+    @after_each_proc = after_each
+
+    @encoding = 'big5'
   end
 
-  def course detail=false
-    $redis.del "course"
-    puts "get search_url"
+  def courses details: false, max_detail_count: 20_000
+    @courses = []
+    @threads = []
+
+    # 重設進度
+    @update_progress_proc.call(progress: 0.0) if @update_progress_proc
+
     visit @search_url
 
     puts "post search_url"
@@ -57,11 +63,20 @@ class NtuCrawler
       select_sem: "#{@year}-#{@term}",
     }
 
-    pool = Thread.pool(ENV['MAX_THREADS'] && ENV['MAX_THREADS'].to_i || 20)
+    # pool = Thread.pool(ENV['MAX_THREADS'] && ENV['MAX_THREADS'].to_i || 20)
 
     pages_param = @doc.xpath('//select[@name="jump"]//@value').map(&:value).uniq
+    @course_pages_processed_count = 0
+    @course_pages_count = pages_param.count
+
     pages_param.each do |query|
-      pool.process(query) do
+      # pool.process(query) do
+      sleep(1) until (
+        @threads.delete_if { |t| !t.status };  # remove dead (ended) threads
+        @threads.count < (ENV['MAX_THREADS'] || 20)
+      )
+
+      @threads << Thread.new do
         puts "get page url"
         r = RestClient.get("#{@search_url}#{query}")
 
@@ -122,16 +137,32 @@ class NtuCrawler
             location_8: course_locations[7],
             location_9: course_locations[8],
           }
-          # @courses << course
-          puts "save to redis"
-          $redis.rpush("course", course.to_json);
+
+          @courses << course
+
+          @course_pages_processed_count += 1
+
+          # callbacks
+          @after_each_proc.call(course: course) if @after_each_proc
+          # update the progress
+          @update_progress_proc.call(progress: @course_pages_processed_count.to_f / @course_pages_count.to_f) if @update_progress_proc
         end
       end # Thread.new do
-    end # pages_params.each
+    end # pages_param.each
 
-    pool.shutdown
+    # pool.shutdown
+    ThreadsWait.all_waits(*@threads)
     puts "done!"
+    @courses
   end # def course
+
+  def current_year
+    (Time.now.month.between?(1, 7) ? Time.now.year - 1 : Time.now.year)
+  end
+
+  def current_term
+    (Time.now.month.between?(2, 7) ? 2 : 1)
+  end
 end
 
 class String
