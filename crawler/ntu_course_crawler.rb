@@ -1,6 +1,7 @@
 require 'thread'
 require 'thread/pool'
 require 'thwait'
+require 'digest'
 
 # Example Usage
 # NtuCrawler.new(encoding: 'big5').course
@@ -99,16 +100,23 @@ class NtuCourseCrawler
             end
           end
 
+          name = datas[4] && datas[4].text.power_strip
+          lecturer = datas[9] && datas[9].text.power_strip
+          department = datas[1] && datas[1].text.power_strip
+
+          # generate code by MD5 digest name,lecturer,department
+          code = Digest::MD5.hexdigest [name, lecturer, department].join(',')
+
           course = {
             serial: datas[0] && datas[0].text.power_strip,
-            department: datas[1] && datas[1].text.power_strip,
+            department: department,
             number: datas[2] && datas[2].text.power_strip,
             code: SecureRandom.urlsafe_base64,
-            name: datas[4] && datas[4].text.power_strip,
+            name: name,
             credits: datas[5] && datas[5].text.to_i,
             id: datas[6] && datas[6].text.power_strip,
             required: datas[8] && datas[8].text.include?('必'),
-            lecturer: datas[9] && datas[9].text.power_strip,
+            lecturer: lecturer,
             day_1: course_days[0],
             day_2: course_days[1],
             day_3: course_days[2],
@@ -146,7 +154,7 @@ class NtuCourseCrawler
           @after_each_proc.call(course: course) if @after_each_proc
           # update the progress
           @update_progress_proc.call(progress: @course_pages_processed_count.to_f / @course_pages_count.to_f) if @update_progress_proc
-        end
+        end # each tr row
       end # Thread.new do
     end # pages_param.each
 
