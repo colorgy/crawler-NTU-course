@@ -15,7 +15,8 @@ class CrawlWorker < WebTaskRunner::TaskWorker
           { ENV['DATA_NAME'] => course }
         )
         WebTaskRunner.job_1_progress = payload[:progress]
-      end
+      end,
+      params: WebTaskRunner.get_params
     )
 
     courses = crawler.courses(details: true, max_detail_count: 10_000)

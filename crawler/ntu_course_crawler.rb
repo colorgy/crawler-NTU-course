@@ -33,13 +33,13 @@ class NtuCourseCrawler
     "D" => 14
   }
 
-  def initialize year: current_year, term: current_term, update_progress: nil, after_each: nil
+  def initialize year: current_year, term: current_term, update_progress: nil, after_each: nil, params: nil
 
     @search_url = "https://nol.ntu.edu.tw/nol/coursesearch/search_result.php"
     @base_url = "https://nol.ntu.edu.tw/nol/coursesearch/"
 
-    @year = year
-    @term = term
+    @year = params && params["year"].to_i || year
+    @term = params && params["term"].to_i || term
     @update_progress_proc = update_progress
     @after_each_proc = after_each
 
@@ -55,11 +55,8 @@ class NtuCourseCrawler
 
     visit @search_url
 
-    puts "post search_url"
-    post @search_url, {
-      cstype: 1,
-      select_sem: "#{@year}-#{@term}",
-    }
+    puts "post search_url: #{@year-1911} - #{@term}"
+    visit "#{@search_url}?cstype=1&current_sem=#{@year-1911}-#{@term}"
 
     pool = Thread.pool(ENV['MAX_THREADS'] && ENV['MAX_THREADS'].to_i || 20)
 
@@ -104,8 +101,9 @@ class NtuCourseCrawler
           id = datas[6] && datas[6].text.power_strip.gsub(/\s/, '')
           class_code= datas[3] && datas[3].text.power_strip
           department_code = Hash[URI.decode_www_form(url)]["dpt_code"]
+          number = datas[2] && datas[2].text.power_strip
 
-          code = [@year, @term, id, department_code, class_code].join('-')
+          code = [@year, @term, id, number, department_code, class_code].join('-')
 
           course = {
             year: @year,
@@ -113,7 +111,7 @@ class NtuCourseCrawler
             serial: datas[0] && datas[0].text.power_strip,
             department: department,
             department_code: department_code,
-            number: datas[2] && datas[2].text.power_strip,
+            number: number,
             code: code,
             class_code: class_code,
             name: name,

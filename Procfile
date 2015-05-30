@@ -1,2 +1,2 @@
 web: bundle exec thin start -p $PORT -e $RACK_ENV
-worker: bundle exec sidekiq -c 20 -v -r ./app.rb
+worker: bundle exec sidekiq -c 10 -v -r ./app.rb
