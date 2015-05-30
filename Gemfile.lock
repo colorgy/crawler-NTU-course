@@ -5,7 +5,7 @@ GEM
       timers (~> 4.0.0)
     coderay (1.1.0)
     connection_pool (2.2.0)
-    crawler_rocks (0.0.1)
+    crawler_rocks (0.0.2)
       curb (~> 0.8, >= 0.8.8)
       nokogiri (~> 1.6, >= 1.6.6.2)
       rest-client (~> 1.8, >= 1.8.0)

@@ -39,7 +39,7 @@ class NtuCourseCrawler
   def initialize year: current_year, term: current_term, update_progress: nil, after_each: nil
 
     @search_url = "https://nol.ntu.edu.tw/nol/coursesearch/search_result.php"
-
+    @base_url = "https://nol.ntu.edu.tw/nol/coursesearch/"
 
     @year = year
     @term = term
@@ -103,18 +103,23 @@ class NtuCourseCrawler
           name = datas[4] && datas[4].text.power_strip
           lecturer = datas[9] && datas[9].text.power_strip
           department = datas[1] && datas[1].text.power_strip
+          url = datas[4] && !datas[4].css('a').empty? && URI.encode("#{@base_url}#{datas[4].css('a')[0][:href]}")
+          id = datas[6] && datas[6].text.power_strip.gsub(/\s/, '')
+          department_code = Hash[URI.decode_www_form(url)]["dpt_code"]
 
-          # generate code by MD5 digest name,lecturer,department
-          code = Digest::MD5.hexdigest [name, lecturer, department].join(',')
+          code = [@year, @term, id, department_code].join('-')
 
           course = {
+            year: @year,
+            term: @term,
             serial: datas[0] && datas[0].text.power_strip,
             department: department,
+            department_code: department_code,
             number: datas[2] && datas[2].text.power_strip,
-            code: SecureRandom.urlsafe_base64,
+            code: code,
             name: name,
             credits: datas[5] && datas[5].text.to_i,
-            id: datas[6] && datas[6].text.power_strip,
+            id: id,
             required: datas[8] && datas[8].text.include?('必'),
             lecturer: lecturer,
             day_1: course_days[0],
@@ -144,16 +149,16 @@ class NtuCourseCrawler
             location_7: course_locations[6],
             location_8: course_locations[7],
             location_9: course_locations[8],
+            url: url
           }
 
           @courses << course
-
-          @course_pages_processed_count += 1
 
           # callbacks
           @after_each_proc.call(course: course) if @after_each_proc
           # update the progress
           @update_progress_proc.call(progress: @course_pages_processed_count.to_f / @course_pages_count.to_f) if @update_progress_proc
+          @course_pages_processed_count += 1
         end # each tr row
       end # Thread.new do
     end # pages_param.each
