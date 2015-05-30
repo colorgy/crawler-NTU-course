@@ -11,9 +11,12 @@ class CrawlWorker < WebTaskRunner::TaskWorker
       after_each: proc do |payload|
         course = payload[:course]
         puts "Saving course #{course[:code]} ..."
-        RestClient.put("#{ENV['DATA_MANAGEMENT_API_ENDPOINT']}/#{course[:code]}?key=#{ENV['DATA_MANAGEMENT_API_KEY']}",
-          { ENV['DATA_NAME'] => course }
-        )
+
+        Curl::Easy.http_put \
+          "#{ENV['DATA_MANAGEMENT_API_ENDPOINT']}/#{course[:code]}?key=#{ENV['DATA_MANAGEMENT_API_KEY']}", \
+          { ENV['DATA_NAME'] => course } if not ENV['RACK_ENV'] == 'development'
+
+        puts "done update #{course[:code]}"
         WebTaskRunner.job_1_progress = payload[:progress]
       end,
       params: WebTaskRunner.get_params
