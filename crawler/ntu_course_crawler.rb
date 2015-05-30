@@ -3,9 +3,6 @@ require 'thread/pool'
 require 'thwait'
 require 'digest'
 
-# Example Usage
-# NtuCrawler.new(encoding: 'big5').course
-
 class NtuCourseCrawler
   include CrawlerRocks::DSL
 
@@ -64,20 +61,20 @@ class NtuCourseCrawler
       select_sem: "#{@year}-#{@term}",
     }
 
-    # pool = Thread.pool(ENV['MAX_THREADS'] && ENV['MAX_THREADS'].to_i || 20)
+    pool = Thread.pool(ENV['MAX_THREADS'] && ENV['MAX_THREADS'].to_i || 20)
 
     pages_param = @doc.xpath('//select[@name="jump"]//@value').map(&:value).uniq
     @course_pages_processed_count = 0
     @course_pages_count = pages_param.count
 
     pages_param.each do |query|
-      # pool.process(query) do
-      sleep(1) until (
-        @threads.delete_if { |t| !t.status };  # remove dead (ended) threads
-        @threads.count < (ENV['MAX_THREADS'] || 20)
-      )
+      pool.process(query) do
+      # sleep(1) until (
+      #   @threads.delete_if { |t| !t.status };  # remove dead (ended) threads
+      #   @threads.count < (ENV['MAX_THREADS'] || 20)
+      # )
 
-      @threads << Thread.new do
+      # @threads << Thread.new do
         puts "get page url"
         r = RestClient.get("#{@search_url}#{query}")
 
@@ -163,7 +160,7 @@ class NtuCourseCrawler
       end # Thread.new do
     end # pages_param.each
 
-    # pool.shutdown
+    pool.shutdown
     ThreadsWait.all_waits(*@threads)
     puts "done!"
     @courses
