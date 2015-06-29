@@ -81,21 +81,16 @@ class NtuCourseCrawler
       @threads << Thread.new do
         puts "get page url"
         retry_count = 0; success = false
-        while retry_count < 10
-          r = Curl.get("#{@search_url}#{query}") do |curl|
-            curl.on_success {|client| puts "success get url!"; retry_count = 10; success = true;}
-            curl.on_missing {|client| puts "retry..."; retry_count += 1; sleep(1);}
-            curl.on_failure {|client| puts "retry..."; retry_count += 1; sleep(1);}
-          end
-        end
-        if not success
+        begin
+          r = RestClient.get "#{@search_url}#{query}"
+        rescue Exception => e
           @failures << "#{@search_url}#{query}"
           next
         end
 
 
         puts "parse page"
-        doc = Nokogiri::HTML(r.body_str.force_encoding(@encoding))
+        doc = Nokogiri::HTML(r.force_encoding(@encoding))
         # row_count = doc.xpath('/html/body/table[4]//tr[position()>1]').count
         # puts "row_count: #{row_count}"
         # @total_row_count += row_count
@@ -217,4 +212,4 @@ class String
 end
 
 # cc = NtuCourseCrawler.new(year: 2014, term: 1)
-# File.write('courses.json', JSON.pretty_generate(cc.courses))
+# File.write('1031courses.json', JSON.pretty_generate(cc.courses))
