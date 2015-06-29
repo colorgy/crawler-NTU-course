@@ -1,7 +1,10 @@
+require 'rubygems'
+require 'bundler'
+
+Bundler.require
+
 require 'thread'
-require 'thread/pool'
 require 'thwait'
-require 'digest'
 
 class NtuCourseCrawler
   include CrawlerRocks::DSL
@@ -136,7 +139,7 @@ class NtuCourseCrawler
             class_code: class_code,
             name: name,
             credits: datas[5] && datas[5].text.to_i,
-            id: id,
+            general_code: id,
             required: datas[8] && datas[8].text.include?('必'),
             lecturer: lecturer,
             day_1: course_days[0],
@@ -189,7 +192,7 @@ class NtuCourseCrawler
 
     # pool.shutdown
     ThreadsWait.all_waits(*@threads)
-    File.write('courses.json', JSON.pretty_generate(@courses)) if under_developement?
+
     puts "done #{@courses.count} courses!"
     @courses
   end # def course
@@ -212,3 +215,6 @@ class String
     self.strip.gsub(/^[ |\s]*|[ |\s]*$/,'')
   end
 end
+
+# cc = NtuCourseCrawler.new(year: 2014, term: 1)
+# File.write('courses.json', JSON.pretty_generate(cc.courses))

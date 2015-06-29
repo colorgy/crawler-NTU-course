@@ -6,8 +6,7 @@ gem 'nokogiri'
 gem 'hashie'
 
 gem 'crawler_rocks'
-gem 'web_task_runner', '~> 0.0.5.1'
-gem 'rest-client'
+gem 'web_task_runner'
 
 gem 'pry'
 gem 'pry-remote'

@@ -3,5 +3,4 @@ deprecated
 .env
 .DS_Store
 
-courses.json
-url.json
+*.json
