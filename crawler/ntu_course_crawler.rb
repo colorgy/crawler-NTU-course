@@ -103,9 +103,9 @@ class NtuCourseCrawler
           course_locations = []
 
           # results =  [["一", "12", "請洽系所辦"], ["四", "12", "請洽系所辦"]]
-          results = datas[11] && datas[11].text.scan(/(?<d>[#{DAYS.keys.join('')}])(?<p>[#{PERIODS.keys.join('')}]+)(\((?<loc>[^\)]+)\))/)
+          results = datas[11] && datas[11].text.scan(/(?<d>[#{DAYS.keys.join}])(?<p>([#{PERIODS.keys.join}],?)+)(\((?<loc>[^\)]+)\))/)
           results.each do |re|
-            re[1].split("").each do |p|
+            re[1].gsub(/\,/, '').split("").each do |p|
               course_days << DAYS[re[0]]
               course_periods << PERIODS[p]
               course_locations << re[2]

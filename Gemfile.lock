@@ -92,3 +92,6 @@ DEPENDENCIES
   redis
   thread
   web_task_runner
+
+BUNDLED WITH
+   1.10.2
